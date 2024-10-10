@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tasks;
+
+service TaskAnalysisService {
+  rpc GetTaskStats (GetTaskStatsRequest) returns (GetTaskStatsResponse);
+}
+
+message GetTaskStatsRequest {}
+
+message GetTaskStatsResponse {
+  int32 total_tasks = 1;
+}
