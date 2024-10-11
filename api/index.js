@@ -51,6 +51,7 @@ app.get('/tasks/stats', (req, res) => {
       return res.status(500).send(error);
     }
     
+    
     console.log("Respuesta de gRPC:", response);
     res.status(200).send(response);
   });

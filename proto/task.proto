@@ -10,4 +10,5 @@ message GetTaskStatsRequest {}
 
 message GetTaskStatsResponse {
   int32 total_tasks = 1;
+  repeated TaskLevel levels = 2;
 }

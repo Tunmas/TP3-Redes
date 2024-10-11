@@ -1,12 +1,9 @@
-// cliente.js
-
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
 // Ruta del archivo proto
-const PROTO_PATH = __dirname + '/proto/task.proto'; // Ajusta si es necesario
+const PROTO_PATH = __dirname + '/proto/task.proto';
 
-// Cargar definición del archivo proto
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
   longs: String,
