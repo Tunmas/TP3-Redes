@@ -4,11 +4,31 @@ package tasks;
 
 service TaskAnalysisService {
   rpc GetTaskStats (GetTaskStatsRequest) returns (GetTaskStatsResponse);
+  rpc GetTasksByLevel (GetTasksByLevelRequest) returns (GetTasksByLevelResponse);
 }
 
 message GetTaskStatsRequest {}
 
+message TaskLevel {
+  string level = 1;  // Define el nivel como un string
+  int32 count = 2;   // El número de tareas en ese nivel
+}
+
 message GetTaskStatsResponse {
   int32 total_tasks = 1;
   repeated TaskLevel levels = 2;
+}
+
+message GetTasksByLevelRequest {
+  string level = 1;  // Nivel de las tareas a buscar
+}
+
+message Task {
+  string id = 1;
+  string description = 2;
+  string status = 3;
+}
+
+message GetTasksByLevelResponse {
+  repeated Task tasks = 1;
 }

@@ -1,8 +1,7 @@
-const grpc = require('@grpc/grpc-js');
+const grpc = require('@grpc/grpc-js');  // Solo necesita estar una vez
 const protoLoader = require('@grpc/proto-loader');
 require('dotenv').config({ path: __dirname + '/../.env' });
 const mongoose = require('mongoose');
-
 const fs = require('fs');
 
 // Verifica si el archivo .env existe y puede ser leído
@@ -12,8 +11,8 @@ if (fs.existsSync('.env')) {
     console.log('.env file does not exist or is not readable.');
 }
 
-const PROTO_PATH = __dirname + '/../proto/task.proto'; // Ajusta esta línea
-
+// Ruta del archivo proto
+const PROTO_PATH = __dirname + '/../proto/task.proto';
 
 // Carga del archivo proto
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
@@ -33,44 +32,73 @@ mongoose.connect(process.env.URI, {
 
 const Task = require('../api/models/Task');
 
+// Función para obtener estadísticas de tareas
 async function getTaskStats(call, callback) {
-    try {
-      const totalCount = await Task.countDocuments({});
-      
-      const levelCounts = await Task.aggregate([
-        {
-          $group: {
-            _id: "$description",
-            count: { $sum: 1 } 
-          }
+  try {
+    const totalCount = await Task.countDocuments({});
+    const levelCounts = await Task.aggregate([
+      {
+        $group: {
+          _id: "$description",
+          count: { $sum: 1 }
         }
-      ]);
-  
-      // Formatea la respuesta
-      const stats = {
-        total_tasks: totalCount,
-        levels: {}
-      };
-  
-      levelCounts.forEach(level => {
-        console.log(`Nivel: ${level._id}, Conteo: ${level.count}`); // Para depuración
-        stats.levels[level._id] = level.count;
-      });
-  
-      console.log("Estadísticas enviadas:", stats);
-  
-      
-      callback(null, stats);
-    } catch (err) {
-      console.error("Error al obtener estadísticas:", err);
-      callback(err);
-    }
-  }
-  
-  
+      }
+    ]);
 
+    // Formatear la respuesta
+    const stats = {
+      total_tasks: totalCount,
+      levels: levelCounts.map(level => ({
+        level: level._id,
+        count: level.count
+      }))
+    };
+
+    callback(null, stats);
+  } catch (err) {
+    console.error("Error al obtener estadísticas:", err);
+    callback(err);
+  }
+}
+
+async function getTasksByLevel(call, callback) {
+  try {
+    const level = call.request.level;  // Extrae el nivel de la solicitud
+
+    // Imprime el valor recibido para depuración
+    console.log("Nivel recibido en la solicitud:", level);
+
+    if (!level) {
+      throw new Error("El nivel está vacío o no se proporcionó.");
+    }
+
+    // Encuentra todas las tareas que coincidan con el nivel proporcionado
+    const tasks = await Task.find({ description: level });
+
+    // Mapea las tareas para devolverlas en el formato correcto
+    const tasksList = tasks.map(task => ({
+      id: task._id.toString(),
+      description: task.description,
+      status: task.status  // Agrega otros campos si es necesario
+    }));
+
+    console.log(`Tareas del nivel ${level} enviadas:`, tasksList);
+
+    // Envía la respuesta con las tareas encontradas
+    callback(null, { tasks: tasksList });
+  } catch (err) {
+    console.error("Error al obtener tareas por nivel:", err);
+    callback(err);
+  }
+}
+
+
+// Crear servidor gRPC y añadir servicios
 const server = new grpc.Server();
-server.addService(tasksProto.TaskAnalysisService.service, { GetTaskStats: getTaskStats });
+server.addService(tasksProto.TaskAnalysisService.service, {
+  GetTaskStats: getTaskStats,
+  GetTasksByLevel: getTasksByLevel  // Añadir la nueva función aquí
+});
 
 console.log("URI de mongoose: " + process.env.URI);
 

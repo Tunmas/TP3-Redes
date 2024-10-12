@@ -15,17 +15,20 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 // Cargar paquete de tareas desde el archivo proto
 const tasksProto = grpc.loadPackageDefinition(packageDefinition).tasks;
 
-// Crear un cliente gRPC para conectarse al servidor
+// Crear el cliente gRPC para conectarse al servidor
 const client = new tasksProto.TaskAnalysisService(
   'localhost:50051', // Ajusta el puerto si es necesario
   grpc.credentials.createInsecure()
 );
 
-// Realizar una consulta para obtener estadísticas
-client.GetTaskStats({}, (error, response) => {
+const levelToSearch = '1';  // Este es el nivel que deseas buscar
+console.log(levelToSearch);
+
+client.GetTasksByLevel({ level: levelToSearch }, (error, response) => {
   if (error) {
-    console.error("Error al obtener estadísticas:", error);
+    console.error("Error al obtener tareas por nivel:", error);
   } else {
-    console.log("Estadísticas de tareas recibidas:", response);
+    console.log("Tareas recibidas para el nivel", levelToSearch, ":", response.tasks);
   }
 });
+
