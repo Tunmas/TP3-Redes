@@ -9,15 +9,11 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  created_at: {
+  level: {
     type: String,
     required: true,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  }
+}, { timestamps: true });
 
 const Task = mongoose.model('Task', taskSchema);
 

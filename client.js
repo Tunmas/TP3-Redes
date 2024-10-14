@@ -17,13 +17,22 @@ const tasksProto = grpc.loadPackageDefinition(packageDefinition).tasks;
 
 // Crear el cliente gRPC para conectarse al servidor
 const client = new tasksProto.TaskAnalysisService(
-  'localhost:50051', // Ajusta el puerto si es necesario
+  'localhost:50051',
   grpc.credentials.createInsecure()
 );
 
-const levelToSearch = '1';  // Este es el nivel que deseas buscar
-console.log(levelToSearch);
+// Obtener estadísticas de tareas
+client.GetTaskStats({}, (error, response) => {
+  if (error) {
+    console.error("Error al obtener estadísticas de tareas:", error);
+  } else {
+    console.log("Total de tareas:", response.total_tasks);
+    console.log("Niveles y conteo de tareas:", response.levels);
+  }
+});
 
+// Buscar tareas por nivel
+const levelToSearch = '1';  // Nivel a buscar
 client.GetTasksByLevel({ level: levelToSearch }, (error, response) => {
   if (error) {
     console.error("Error al obtener tareas por nivel:", error);

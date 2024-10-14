@@ -1,11 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config({ path: __dirname + '/../.env' });
 const Task = require('./models/Task');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
+require('dotenv').config({ path: __dirname + '/../.env' });
 
-const PROTO_PATH = __dirname + '/../proto/task.proto'; // Ajusta esta línea
+const PROTO_PATH = __dirname + '/../proto/task.proto';
 
 // Carga del archivo proto
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
@@ -15,6 +15,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   defaults: true,
   oneofs: true
 });
+
 const tasksProto = grpc.loadPackageDefinition(packageDefinition).tasks;
 
 const client = new tasksProto.TaskAnalysisService('localhost:50051', grpc.credentials.createInsecure());
@@ -51,11 +52,29 @@ app.get('/tasks/stats', (req, res) => {
       return res.status(500).send(error);
     }
     
-    
     console.log("Respuesta de gRPC:", response);
     res.status(200).send(response);
   });
 });
+
+
+// Endpoint para obtener segun nivel
+app.get('/tasks/level/:level', (req, res) => {
+  const level = req.params.level;
+
+  client.GetTasksByLevel({ level: level }, (error, response) => {
+    if (error) {
+      console.error("Error in gRPC call:", error);
+      return res.status(500).send(error);
+    }
+
+    res.status(200).send(response.tasks);
+  });
+});
+
+
+
+
 
 
 
@@ -65,9 +84,7 @@ app.listen(PORT, () => {
 });
 
 // Conexión a MongoDB
-mongoose.connect(process.env.URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(process.env.URL, {
 }).then(() => {
   console.log("Conectado a MongoDB Atlas");
 }).catch((error) => {
