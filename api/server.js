@@ -72,12 +72,6 @@ app.get('/tasks/level/:level', (req, res) => {
   });
 });
 
-
-
-
-
-
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor REST corriendo en el puerto ${PORT}`);

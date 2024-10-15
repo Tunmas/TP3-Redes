@@ -4,13 +4,7 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 require('dotenv').config({ path: __dirname + '/../.env' });
 const Task = require('../api/models/Task');
-
-// // Verifica si el archivo .env existe y puede ser leído
-// if (fs.existsSync('.env')) {
-//     console.log('.env file exists and is readable.');
-// } else {
-//     console.log('.env file does not exist or is not readable.');
-// }
+const reflection = require('@grpc/reflection');
 
 // Ruta del archivo proto
 const PROTO_PATH = __dirname + '/../proto/task.proto';
@@ -90,13 +84,17 @@ async function getTasksByLevel(call, callback) {
   }
 }
 
-
 // Crear servidor gRPC y añadir servicios
 const server = new grpc.Server();
+
 server.addService(tasksProto.TaskAnalysisService.service, {
   GetTaskStats: getTaskStats,
   GetTasksByLevel: getTasksByLevel
 });
+
+// Agregar funcionalidad gRPC Reflection
+const reflectionService = new reflection.ReflectionService(packageDefinition);
+reflectionService.addToServer(server);
 
 console.log("URL de mongoose: " + process.env.URL);
 
